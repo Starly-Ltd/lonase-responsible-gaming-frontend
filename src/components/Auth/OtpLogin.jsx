@@ -67,7 +67,11 @@ export default function OtpLogin() {
       const response = await rgApi.verifyOtp(mobileNumber, otp);
 
       if (response.data.success) {
-        login(response.data.token, response.data.customer);
+        login(
+          response.data.token,
+          response.data.customer,
+          response.data.config || {}
+        );
 
         navigate("/set-limits");
       }
@@ -218,7 +222,7 @@ export default function OtpLogin() {
             </form>
           )}
         </div>
-        
+
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
             By continuing, you agree to set responsible gaming limits to protect

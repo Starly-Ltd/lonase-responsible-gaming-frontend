@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { rgApi } from "../../api/rgApi";
+import { useAuth } from "../../context/AuthContext";
 
 export default function MyLimits() {
   const [limits, setLimits] = useState(null);
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { currency: authCurrency, updateConfig } = useAuth();
+  const currency = authCurrency ?? "";
 
   useEffect(() => {
     loadLimits();
@@ -18,6 +21,9 @@ export default function MyLimits() {
       if (response.data.success) {
         setLimits(response.data.data.limits);
         setStatus(response.data.data.status);
+        if (response.data.data.currency) {
+          updateConfig({ currency: response.data.data.currency });
+        }
       }
     } catch (err) {
       setError("Failed to load limits. Please try again.");
@@ -118,7 +124,10 @@ export default function MyLimits() {
         {limits.stake_per_bet_limit.enabled && (
           <LimitCard
             title="Stake Per Bet"
-            value={`${limits.stake_per_bet_limit.amount} KES`}
+            value={formatCurrencyValue(
+              limits.stake_per_bet_limit.amount,
+              currency
+            )}
             description="Maximum amount per single bet"
           />
         )}
@@ -126,7 +135,7 @@ export default function MyLimits() {
         {limits.deposit_limit.enabled && (
           <LimitCard
             title="Deposit Limit"
-            value={`${limits.deposit_limit.amount} KES`}
+            value={formatCurrencyValue(limits.deposit_limit.amount, currency)}
             description="Maximum deposit amount"
           />
         )}
@@ -181,6 +190,14 @@ function LimitCard({ title, value, description }) {
       </div>
     </div>
   );
+}
+
+function formatCurrencyValue(amount, currency) {
+  if (amount == null) return "-";
+  if (!currency) {
+    return `${amount}`;
+  }
+  return `${amount} ${currency}`;
 }
 
 function TimeOutCard({ timeOut }) {

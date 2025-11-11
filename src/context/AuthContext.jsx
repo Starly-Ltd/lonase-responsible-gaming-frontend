@@ -1,11 +1,16 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { rgApi } from "../api/rgApi";
 
+const DEFAULT_CONFIG = {
+  currency: null,
+};
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,19 +27,40 @@ export function AuthProvider({ children }) {
       }
     }
 
+    const savedConfig = localStorage.getItem("rg_config");
+    if (savedConfig) {
+      try {
+        const parsedConfig = JSON.parse(savedConfig);
+        setConfig({ ...DEFAULT_CONFIG, ...parsedConfig });
+      } catch (e) {
+        console.error("Failed to parse config data:", e);
+        localStorage.removeItem("rg_config");
+      }
+    }
+
     setLoading(false);
   }, []);
+
+  const updateConfig = (updates = {}) => {
+    setConfig((prev) => {
+      const nextConfig = { ...DEFAULT_CONFIG, ...prev, ...updates };
+      localStorage.setItem("rg_config", JSON.stringify(nextConfig));
+      return nextConfig;
+    });
+  };
 
   /**
    * Login with token and customer data
    * @param {string} authToken - JWT token
    * @param {Object} customer - Customer data
+   * @param {Object} configData - Additional configuration data
    */
-  const login = (authToken, customer) => {
+  const login = (authToken, customer, configData = {}) => {
     localStorage.setItem("rg_auth_token", authToken);
     localStorage.setItem("rg_customer", JSON.stringify(customer));
     setToken(authToken);
     setUser(customer);
+    updateConfig(configData);
   };
 
   /**
@@ -48,18 +74,23 @@ export function AuthProvider({ children }) {
     } finally {
       localStorage.removeItem("rg_auth_token");
       localStorage.removeItem("rg_customer");
+      localStorage.removeItem("rg_config");
       setToken(null);
       setUser(null);
+      setConfig(DEFAULT_CONFIG);
     }
   };
 
   const value = {
     user,
     token,
+    config,
+    currency: config?.currency ?? null,
     login,
     logout,
     loading,
     isAuthenticated: !!token,
+    updateConfig,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

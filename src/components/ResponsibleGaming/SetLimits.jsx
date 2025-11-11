@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { rgApi } from "../../api/rgApi";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SetLimits() {
   const {
@@ -16,6 +17,8 @@ export default function SetLimits() {
   const [currentLimits, setCurrentLimits] = useState(null);
   const [editable, setEditable] = useState(null);
   const [loadingLimits, setLoadingLimits] = useState(true);
+  const { currency: authCurrency, updateConfig } = useAuth();
+  const currency = authCurrency ?? "";
 
   useEffect(() => {
     loadCurrentLimits();
@@ -27,6 +30,9 @@ export default function SetLimits() {
       if (response.data.success && response.data.data.limits) {
         setCurrentLimits(response.data.data.limits);
         setEditable(response.data.data.editable);
+        if (response.data.data.currency) {
+          updateConfig({ currency: response.data.data.currency });
+        }
       }
     } catch (err) {
       console.error("Failed to load limits:", err);
@@ -111,6 +117,9 @@ export default function SetLimits() {
       const response = await rgApi.setLimits(payload);
       if (response.data.success) {
         setSuccess(response.data.message);
+        if (response.data.data?.currency) {
+          updateConfig({ currency: response.data.data.currency });
+        }
         loadCurrentLimits();
 
         if (response.data.data.controls_set) {
@@ -186,6 +195,8 @@ export default function SetLimits() {
           isLocked={isLocked("stake_per_bet_limit")}
           currentValue={currentLimits?.stake_per_bet_limit}
           lockMessage="Stake per bet limit is already set. Contact support to remove it."
+          currency={currency}
+          amountUnit="currency"
         >
           {!isLocked("stake_per_bet_limit") && (
             <>
@@ -240,6 +251,8 @@ export default function SetLimits() {
           isLocked={isLocked("deposit_limit")}
           currentValue={currentLimits?.deposit_limit}
           lockMessage="Deposit limit is already set. Contact support to remove it."
+          currency={currency}
+          amountUnit="currency"
         >
           {!isLocked("deposit_limit") && (
             <>
@@ -292,6 +305,8 @@ export default function SetLimits() {
           isLocked={isLocked("bet_count_limit")}
           currentValue={currentLimits?.bet_count_limit}
           lockMessage="Bet count limit is already set. Contact support to remove it."
+          currency={currency}
+          amountUnit="bets"
         >
           {!isLocked("bet_count_limit") && (
             <>
@@ -669,6 +684,8 @@ function ControlCard({
   children,
   bgColor = "bg-white",
   borderColor = "border-gray-200",
+  currency = "",
+  amountUnit = "currency",
 }) {
   return (
     <div className={`card border ${borderColor} ${bgColor}`}>
@@ -687,12 +704,15 @@ function ControlCard({
 
               {currentValue?.enabled && (
                 <div className="mb-3">
-                  {currentValue.amount !== undefined && (
-                    <p className="text-2xl font-bold text-gray-700">
-                      {currentValue.amount}{" "}
-                      {currentValue.amount ? "KES" : "bets"}
-                    </p>
-                  )}
+                  {currentValue.amount !== undefined &&
+                    currentValue.amount !== null && (
+                      <p className="text-2xl font-bold text-gray-700">
+                        {formatAmountWithUnit(
+                          currentValue.amount,
+                          amountUnit === "currency" ? currency : amountUnit
+                        )}
+                      </p>
+                    )}
                   {currentValue.duration !== undefined && (
                     <p className="text-lg font-semibold text-gray-700">
                       {currentValue.duration}min every {currentValue.frequency}
@@ -744,4 +764,11 @@ function formatOption(option) {
     indefinitely: "Indefinitely (Permanent)",
   };
   return map[option] || option;
+}
+
+function formatAmountWithUnit(amount, unit) {
+  if (unit) {
+    return `${amount} ${unit}`;
+  }
+  return `${amount}`;
 }
