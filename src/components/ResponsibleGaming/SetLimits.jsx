@@ -49,6 +49,67 @@ export default function SetLimits() {
   const sessionBreakEnabled = watch("session_break_enabled");
   const nightCurfewEnabled = watch("night_curfew_enabled");
 
+  const existingSelfExclusionActive =
+    currentLimits?.self_exclusion?.enabled &&
+    (currentLimits?.self_exclusion?.option === "indefinitely" ||
+      currentLimits?.self_exclusion?.active);
+
+  const timeOutDisabled = selfExclusionEnabled || existingSelfExclusionActive;
+  const selfExclusionDisabled =
+    timeOutEnabled ||
+    (currentLimits?.self_exclusion?.enabled &&
+      (currentLimits?.self_exclusion?.option === "indefinitely" ||
+        currentLimits?.self_exclusion?.active));
+
+  const handleExclusiveToggle = (control, checked) => {
+    if (control === "time_out") {
+      if (
+        checked &&
+        (currentLimits?.self_exclusion?.enabled ||
+          watch("self_exclusion_limit_enabled"))
+      ) {
+        alert(
+          "Activating a time-out will disable your self-exclusion. Continue only if you want to replace the longer lock."
+        );
+      }
+      setValue("self_exclusion_limit_enabled", false, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue("self_exclusion_limit_option", null, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+    }
+
+    if (control === "self_exclusion") {
+      if (
+        checked &&
+        (currentLimits?.time_out?.enabled || watch("time_out_limit_enabled"))
+      ) {
+        alert(
+          "Activating a self-exclusion will disable any existing time-out. Continue only if you want the longer lock instead."
+        );
+      }
+      setValue("time_out_limit_enabled", false, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue("time_out_limit_option", null, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+    }
+
+    setValue(
+      control === "time_out"
+        ? "time_out_limit_enabled"
+        : "self_exclusion_limit_enabled",
+      checked,
+      { shouldValidate: true, shouldDirty: true }
+    );
+  };
+
   const onSubmit = async (data) => {
     setLoading(true);
     setError("");
@@ -368,7 +429,18 @@ export default function SetLimits() {
           bgColor="bg-yellow-50"
           borderColor="border-yellow-200"
         >
-          {!isLocked("time_out_limit") && (
+          {existingSelfExclusionActive ? (
+            <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              <p className="font-semibold text-gray-900 mb-1">
+                Self-exclusion in effect
+              </p>
+              <p>
+                A self-exclusion is currently active, so a time-out is covered
+                automatically. Contact support or wait until the self-exclusion
+                ends to set a shorter lock-out.
+              </p>
+            </div>
+          ) : (
             <>
               <div className="flex items-start mb-4">
                 <input
@@ -376,6 +448,10 @@ export default function SetLimits() {
                   {...register("time_out_limit_enabled")}
                   className="checkbox mt-1"
                   id="timeout_enabled"
+                  disabled={timeOutDisabled}
+                  onChange={(e) =>
+                    handleExclusiveToggle("time_out", e.target.checked)
+                  }
                 />
                 <label
                   htmlFor="timeout_enabled"
@@ -385,7 +461,7 @@ export default function SetLimits() {
                 </label>
               </div>
 
-              {timeOutEnabled && (
+              {timeOutEnabled && !timeOutDisabled && (
                 <div className="pl-8">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Duration
@@ -443,6 +519,10 @@ export default function SetLimits() {
                   {...register("self_exclusion_limit_enabled")}
                   className="checkbox mt-1"
                   id="self_exclusion_enabled"
+                  disabled={selfExclusionDisabled}
+                  onChange={(e) =>
+                    handleExclusiveToggle("self_exclusion", e.target.checked)
+                  }
                 />
                 <label
                   htmlFor="self_exclusion_enabled"
@@ -452,7 +532,7 @@ export default function SetLimits() {
                 </label>
               </div>
 
-              {selfExclusionEnabled && (
+              {selfExclusionEnabled && !selfExclusionDisabled && (
                 <div className="pl-8">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Duration
@@ -488,6 +568,18 @@ export default function SetLimits() {
                 </div>
               )}
             </>
+          )}
+          {selfExclusionDisabled && !selfExclusionEnabled && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+              <p className="font-semibold text-yellow-900 mb-1">
+                Time-out already active
+              </p>
+              <p>
+                A time-out is currently running. If you continue with
+                self-exclusion, the time-out will be removed and replaced by the
+                longer lock.
+              </p>
+            </div>
           )}
         </ControlCard>
 
