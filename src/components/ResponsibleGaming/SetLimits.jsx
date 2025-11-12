@@ -420,6 +420,169 @@ export default function SetLimits() {
         </ControlCard>
 
         <ControlCard
+          title="Session Breaks"
+          description="Take forced breaks during play to avoid gambling fatigue"
+          isLocked={isLocked("session_break")}
+          currentValue={currentLimits?.session_break}
+          lockMessage="Session break is already set. Contact support to remove it."
+        >
+          {!isLocked("session_break") && (
+            <>
+              <div className="flex items-start mb-4">
+                <input
+                  type="checkbox"
+                  {...register("session_break_enabled")}
+                  className="checkbox mt-1"
+                  id="session_break_enabled"
+                />
+                <label
+                  htmlFor="session_break_enabled"
+                  className="ml-3 text-base font-medium cursor-pointer"
+                >
+                  Enable session breaks
+                </label>
+              </div>
+
+              {sessionBreakEnabled && (
+                <div className="pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Break duration (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      {...register("session_break_duration", {
+                        required: sessionBreakEnabled && "Required",
+                        min: { value: 1, message: "Min 1 minute" },
+                        max: { value: 60, message: "Max 60 minutes" },
+                      })}
+                      placeholder="5"
+                      className={
+                        errors.session_break_duration ? "input-error" : "input"
+                      }
+                      step="1"
+                    />
+                    {errors.session_break_duration && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.session_break_duration.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Break every (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      {...register("session_break_frequency", {
+                        required: sessionBreakEnabled && "Required",
+                        min: { value: 1, message: "Min 1 minute" },
+                        max: { value: 480, message: "Max 480 minutes" },
+                      })}
+                      placeholder="60"
+                      className={
+                        errors.session_break_frequency ? "input-error" : "input"
+                      }
+                      step="1"
+                    />
+                    {errors.session_break_frequency && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.session_break_frequency.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="col-span-full text-sm text-gray-600">
+                    Example: 5 minutes break every 60 minutes of play
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </ControlCard>
+
+        <ControlCard
+          title="Night Curfew"
+          description="Block access during specific hours every night (e.g., ensure proper sleep)"
+          isLocked={isLocked("night_curfew")}
+          currentValue={currentLimits?.night_curfew}
+          lockMessage="Night curfew is already set. Contact support to remove it."
+        >
+          {!isLocked("night_curfew") && (
+            <>
+              <div className="flex items-start mb-4">
+                <input
+                  type="checkbox"
+                  {...register("night_curfew_enabled")}
+                  className="checkbox mt-1"
+                  id="night_curfew_enabled"
+                />
+                <label
+                  htmlFor="night_curfew_enabled"
+                  className="ml-3 text-base font-medium cursor-pointer"
+                >
+                  Enable night curfew
+                </label>
+              </div>
+
+              {nightCurfewEnabled && (
+                <div className="pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start time
+                    </label>
+                    <input
+                      type="time"
+                      {...register("night_curfew_daily_start_time", {
+                        required: nightCurfewEnabled && "Required",
+                      })}
+                      className={
+                        errors.night_curfew_daily_start_time
+                          ? "input-error"
+                          : "input"
+                      }
+                    />
+                    {errors.night_curfew_daily_start_time && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.night_curfew_daily_start_time.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End time
+                    </label>
+                    <input
+                      type="time"
+                      {...register("night_curfew_daily_end_time", {
+                        required: nightCurfewEnabled && "Required",
+                      })}
+                      className={
+                        errors.night_curfew_daily_end_time
+                          ? "input-error"
+                          : "input"
+                      }
+                    />
+                    {errors.night_curfew_daily_end_time && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.night_curfew_daily_end_time.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="col-span-full text-sm text-gray-600">
+                    Example: 02:00 to 06:00 = No play between 2 AM and 6 AM
+                    every night
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </ControlCard>
+
+        <ControlCard
           title="Time-Out (Cooling-Off)"
           description="Take a short break from gambling. Your account will be locked temporarily."
           isLocked={isLocked("time_out_limit")}
@@ -586,170 +749,7 @@ export default function SetLimits() {
             </div>
           )}
         </ControlCard>
-
-        <ControlCard
-          title="Session Breaks"
-          description="Take forced breaks during play to avoid gambling fatigue"
-          isLocked={isLocked("session_break")}
-          currentValue={currentLimits?.session_break}
-          lockMessage="Session break is already set. Contact support to remove it."
-        >
-          {!isLocked("session_break") && (
-            <>
-              <div className="flex items-start mb-4">
-                <input
-                  type="checkbox"
-                  {...register("session_break_enabled")}
-                  className="checkbox mt-1"
-                  id="session_break_enabled"
-                />
-                <label
-                  htmlFor="session_break_enabled"
-                  className="ml-3 text-base font-medium cursor-pointer"
-                >
-                  Enable session breaks
-                </label>
-              </div>
-
-              {sessionBreakEnabled && (
-                <div className="pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Break duration (minutes)
-                    </label>
-                    <input
-                      type="number"
-                      {...register("session_break_duration", {
-                        required: sessionBreakEnabled && "Required",
-                        min: { value: 1, message: "Min 1 minute" },
-                        max: { value: 60, message: "Max 60 minutes" },
-                      })}
-                      placeholder="5"
-                      className={
-                        errors.session_break_duration ? "input-error" : "input"
-                      }
-                      step="1"
-                    />
-                    {errors.session_break_duration && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.session_break_duration.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Break every (minutes)
-                    </label>
-                    <input
-                      type="number"
-                      {...register("session_break_frequency", {
-                        required: sessionBreakEnabled && "Required",
-                        min: { value: 1, message: "Min 1 minute" },
-                        max: { value: 480, message: "Max 480 minutes" },
-                      })}
-                      placeholder="60"
-                      className={
-                        errors.session_break_frequency ? "input-error" : "input"
-                      }
-                      step="1"
-                    />
-                    {errors.session_break_frequency && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.session_break_frequency.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <p className="col-span-full text-sm text-gray-600">
-                    Example: 5 minutes break every 60 minutes of play
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </ControlCard>
-
-        <ControlCard
-          title="Night Curfew"
-          description="Block access during specific hours every night (e.g., ensure proper sleep)"
-          isLocked={isLocked("night_curfew")}
-          currentValue={currentLimits?.night_curfew}
-          lockMessage="Night curfew is already set. Contact support to remove it."
-        >
-          {!isLocked("night_curfew") && (
-            <>
-              <div className="flex items-start mb-4">
-                <input
-                  type="checkbox"
-                  {...register("night_curfew_enabled")}
-                  className="checkbox mt-1"
-                  id="night_curfew_enabled"
-                />
-                <label
-                  htmlFor="night_curfew_enabled"
-                  className="ml-3 text-base font-medium cursor-pointer"
-                >
-                  Enable night curfew
-                </label>
-              </div>
-
-              {nightCurfewEnabled && (
-                <div className="pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start time
-                    </label>
-                    <input
-                      type="time"
-                      {...register("night_curfew_daily_start_time", {
-                        required: nightCurfewEnabled && "Required",
-                      })}
-                      className={
-                        errors.night_curfew_daily_start_time
-                          ? "input-error"
-                          : "input"
-                      }
-                    />
-                    {errors.night_curfew_daily_start_time && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.night_curfew_daily_start_time.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      End time
-                    </label>
-                    <input
-                      type="time"
-                      {...register("night_curfew_daily_end_time", {
-                        required: nightCurfewEnabled && "Required",
-                      })}
-                      className={
-                        errors.night_curfew_daily_end_time
-                          ? "input-error"
-                          : "input"
-                      }
-                    />
-                    {errors.night_curfew_daily_end_time && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.night_curfew_daily_end_time.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <p className="col-span-full text-sm text-gray-600">
-                    Example: 02:00 to 06:00 = No play between 2 AM and 6 AM
-                    every night
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </ControlCard>
-
+        
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-4 sm:mx-0 sm:border-0 sm:p-0 sm:bg-transparent safe-bottom">
           <button
             type="submit"
