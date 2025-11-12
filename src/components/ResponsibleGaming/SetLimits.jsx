@@ -55,6 +55,11 @@ export default function SetLimits() {
       currentLimits?.self_exclusion?.active);
 
   const timeOutDisabled = selfExclusionEnabled || existingSelfExclusionActive;
+  const timeOutDisabledMessage = existingSelfExclusionActive
+    ? "A self-exclusion is currently active, so a time-out is covered automatically. Contact support or wait until the self-exclusion ends to set a shorter lock-out."
+    : selfExclusionEnabled
+    ? "Self-exclusion is selected. A time-out isn’t needed because the longer lock will apply."
+    : null;
   const selfExclusionDisabled =
     timeOutEnabled ||
     (currentLimits?.self_exclusion?.enabled &&
@@ -429,16 +434,12 @@ export default function SetLimits() {
           bgColor="bg-yellow-50"
           borderColor="border-yellow-200"
         >
-          {existingSelfExclusionActive ? (
+          {timeOutDisabled ? (
             <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
               <p className="font-semibold text-gray-900 mb-1">
                 Self-exclusion in effect
               </p>
-              <p>
-                A self-exclusion is currently active, so a time-out is covered
-                automatically. Contact support or wait until the self-exclusion
-                ends to set a shorter lock-out.
-              </p>
+              <p>{timeOutDisabledMessage}</p>
             </div>
           ) : (
             <>
@@ -513,59 +514,66 @@ export default function SetLimits() {
         >
           {!isLocked("self_exclusion_limit") && (
             <>
-              <div className="flex items-start mb-4">
-                <input
-                  type="checkbox"
-                  {...register("self_exclusion_limit_enabled")}
-                  className="checkbox mt-1"
-                  id="self_exclusion_enabled"
-                  disabled={selfExclusionDisabled}
-                  onChange={(e) =>
-                    handleExclusiveToggle("self_exclusion", e.target.checked)
-                  }
-                />
-                <label
-                  htmlFor="self_exclusion_enabled"
-                  className="ml-3 text-base font-medium cursor-pointer"
-                >
-                  Activate self-exclusion
-                </label>
-              </div>
+              {!selfExclusionDisabled && (
+                <>
+                  <div className="flex items-start mb-4">
+                    <input
+                      type="checkbox"
+                      {...register("self_exclusion_limit_enabled")}
+                      className="checkbox mt-1"
+                      id="self_exclusion_enabled"
+                      onChange={(e) =>
+                        handleExclusiveToggle(
+                          "self_exclusion",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <label
+                      htmlFor="self_exclusion_enabled"
+                      className="ml-3 text-base font-medium cursor-pointer"
+                    >
+                      Activate self-exclusion
+                    </label>
+                  </div>
 
-              {selfExclusionEnabled && !selfExclusionDisabled && (
-                <div className="pl-8">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration
-                  </label>
-                  <select
-                    {...register("self_exclusion_limit_option", {
-                      required: selfExclusionEnabled && "Duration is required",
-                    })}
-                    className={
-                      errors.self_exclusion_limit_option
-                        ? "input-error"
-                        : "input"
-                    }
-                  >
-                    <option value="">Select duration</option>
-                    <option value="1_month">1 Month</option>
-                    <option value="3_months">3 Months</option>
-                    <option value="6_months">6 Months</option>
-                    <option value="1_year">1 Year</option>
-                    <option value="indefinitely">
-                      Indefinitely (Permanent)
-                    </option>
-                  </select>
-                  {errors.self_exclusion_limit_option && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.self_exclusion_limit_option.message}
-                    </p>
+                  {selfExclusionEnabled && (
+                    <div className="pl-8">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Duration
+                      </label>
+                      <select
+                        {...register("self_exclusion_limit_option", {
+                          required:
+                            selfExclusionEnabled && "Duration is required",
+                        })}
+                        className={
+                          errors.self_exclusion_limit_option
+                            ? "input-error"
+                            : "input"
+                        }
+                      >
+                        <option value="">Select duration</option>
+                        <option value="1_month">1 Month</option>
+                        <option value="3_months">3 Months</option>
+                        <option value="6_months">6 Months</option>
+                        <option value="1_year">1 Year</option>
+                        <option value="indefinitely">
+                          Indefinitely (Permanent)
+                        </option>
+                      </select>
+                      {errors.self_exclusion_limit_option && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.self_exclusion_limit_option.message}
+                        </p>
+                      )}
+                      <p className="text-sm text-red-700 mt-2 font-semibold">
+                        WARNING: Self-exclusion cannot be reversed. You'll need
+                        to contact support.
+                      </p>
+                    </div>
                   )}
-                  <p className="text-sm text-red-700 mt-2 font-semibold">
-                    WARNING: Self-exclusion cannot be reversed. You'll need to
-                    contact support.
-                  </p>
-                </div>
+                </>
               )}
             </>
           )}
@@ -758,7 +766,7 @@ export default function SetLimits() {
                 Saving...
               </span>
             ) : (
-              "Save Controls (Cannot Be Changed Later)"
+              "Save Controls"
             )}
           </button>
         </div>
