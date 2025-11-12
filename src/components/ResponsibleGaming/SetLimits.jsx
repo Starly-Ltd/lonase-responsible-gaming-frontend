@@ -594,6 +594,8 @@ export default function SetLimits() {
                 ).toLocaleString()}. Wait for it to expire.`
               : "Time-out has expired. You can set a new one."
           }
+          bgColor="bg-yellow-50"
+          borderColor="border-yellow-200"
         >
           {timeOutDisabled ? (
             <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
@@ -670,6 +672,8 @@ export default function SetLimits() {
                 ).toLocaleString()}. Contact support for early reactivation.`
               : "Self-exclusion has expired. You can set a new one."
           }
+          bgColor="bg-red-50"
+          borderColor="border-red-200"
         >
           {!isLocked("self_exclusion_limit") && (
             <>
@@ -749,7 +753,7 @@ export default function SetLimits() {
             </div>
           )}
         </ControlCard>
-        
+
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-4 sm:mx-0 sm:border-0 sm:p-0 sm:bg-transparent safe-bottom">
           <button
             type="submit"
