@@ -431,8 +431,6 @@ export default function SetLimits() {
                 ).toLocaleString()}. Wait for it to expire.`
               : "Time-out has expired. You can set a new one."
           }
-          bgColor="bg-yellow-50"
-          borderColor="border-yellow-200"
         >
           {timeOutDisabled ? (
             <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
@@ -485,7 +483,7 @@ export default function SetLimits() {
                       {errors.time_out_limit_option.message}
                     </p>
                   )}
-                  <p className="text-sm text-yellow-700 mt-2 font-semibold">
+                  <p className="text-sm text-red-700 mt-2 font-semibold">
                     Your account will be locked for this duration. This cannot
                     be undone.
                   </p>
@@ -509,8 +507,6 @@ export default function SetLimits() {
                 ).toLocaleString()}. Contact support for early reactivation.`
               : "Self-exclusion has expired. You can set a new one."
           }
-          bgColor="bg-red-50"
-          borderColor="border-red-200"
         >
           {!isLocked("self_exclusion_limit") && (
             <>
@@ -578,8 +574,8 @@ export default function SetLimits() {
             </>
           )}
           {selfExclusionDisabled && !selfExclusionEnabled && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
-              <p className="font-semibold text-yellow-900 mb-1">
+            <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              <p className="font-semibold text-gray-900 mb-1">
                 Time-out already active
               </p>
               <p>

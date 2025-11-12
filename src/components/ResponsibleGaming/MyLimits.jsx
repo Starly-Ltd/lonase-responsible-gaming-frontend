@@ -202,7 +202,7 @@ function formatCurrencyValue(amount, currency) {
 
 function TimeOutCard({ timeOut }) {
   return (
-    <div className="card-hover bg-yellow-50 border border-yellow-200">
+    <div className="card-hover">
       <div className="flex items-start">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900">Time-Out</h3>
@@ -228,7 +228,7 @@ function TimeOutCard({ timeOut }) {
 
 function SelfExclusionCard({ selfExclusion }) {
   return (
-    <div className="card-hover bg-red-50 border border-red-200">
+    <div className="card-hover">
       <div className="flex items-start">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900">
