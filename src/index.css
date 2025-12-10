@@ -5,10 +5,19 @@
 @layer base {
     html {
         @apply antialiased;
+        /* Prevent layout shift from scrollbar */
+        scrollbar-gutter: stable;
     }
 
     body {
         @apply text-gray-900 bg-gray-50;
+    }
+    
+    /* Fallback for browsers that don't support scrollbar-gutter */
+    @supports not (scrollbar-gutter: stable) {
+        html {
+            padding-right: calc(100vw - 100%);
+        }
     }
 
     /* Custom scrollbar */
@@ -170,5 +179,22 @@
 
     .hide-scrollbar::-webkit-scrollbar {
         display: none;
+    }
+
+    /* FAQ Details styling */
+    details[open] summary {
+        @apply font-bold;
+    }
+
+    details[open] summary svg {
+        @apply rotate-180;
+    }
+
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    details summary {
+        list-style: none;
     }
 }

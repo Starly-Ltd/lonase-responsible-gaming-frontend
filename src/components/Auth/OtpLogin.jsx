@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { rgApi } from "../../api/rgApi";
 
 export default function OtpLogin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
 
   const [step, setStep] = useState("mobile");
@@ -73,7 +74,9 @@ export default function OtpLogin() {
           response.data.config || {}
         );
 
-        navigate("/set-limits");
+        // Redirect to return URL or default to /set-limits
+        const returnUrl = searchParams.get("returnUrl") || "/set-limits";
+        navigate(returnUrl);
       }
     } catch (err) {
       setError(err.response?.data?.message || "Invalid OTP. Please try again.");
@@ -91,7 +94,7 @@ export default function OtpLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-center w-full py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
