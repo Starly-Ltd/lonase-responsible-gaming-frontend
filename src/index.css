@@ -7,7 +7,7 @@
         @apply antialiased;
         /* Prevent layout shift from scrollbar */
         scrollbar-gutter: stable;
-    }
+    }w
 
     body {
         @apply text-gray-900 bg-gray-50;

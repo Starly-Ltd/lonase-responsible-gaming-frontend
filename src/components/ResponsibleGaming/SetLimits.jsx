@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { rgApi } from "../../api/rgApi";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function SetLimits() {
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -56,9 +58,9 @@ export default function SetLimits() {
 
   const timeOutDisabled = selfExclusionEnabled || existingSelfExclusionActive;
   const timeOutDisabledMessage = existingSelfExclusionActive
-    ? "A self-exclusion is currently active, so a time-out is covered automatically. Contact support or wait until the self-exclusion ends to set a shorter lock-out."
+    ? t("set_limits_timeout_self_exclusion_message_active")
     : selfExclusionEnabled
-    ? "Self-exclusion is selected. A time-out isn’t needed because the longer lock will apply."
+    ? t("set_limits_timeout_self_exclusion_message_selected")
     : null;
   const selfExclusionDisabled =
     timeOutEnabled ||
@@ -73,9 +75,7 @@ export default function SetLimits() {
         (currentLimits?.self_exclusion?.enabled ||
           watch("self_exclusion_limit_enabled"))
       ) {
-        alert(
-          "Activating a time-out will disable your self-exclusion. Continue only if you want to replace the longer lock."
-        );
+        alert(t("set_limits_alert_timeout_replace"));
       }
       setValue("self_exclusion_limit_enabled", false, {
         shouldValidate: true,
@@ -92,9 +92,7 @@ export default function SetLimits() {
         checked &&
         (currentLimits?.time_out?.enabled || watch("time_out_limit_enabled"))
       ) {
-        alert(
-          "Activating a self-exclusion will disable any existing time-out. Continue only if you want the longer lock instead."
-        );
+        alert(t("set_limits_alert_self_exclusion_replace"));
       }
       setValue("time_out_limit_enabled", false, {
         shouldValidate: true,
@@ -191,7 +189,9 @@ export default function SetLimits() {
         if (response.data.data.controls_set) {
           const controlsList = response.data.data.controls_set.join("\n");
           alert(
-            `Controls Set:\n\n${controlsList}\n\nThese limits are now locked and cannot be changed.\nContact support to remove them.`
+            `${t("set_limits_alert_controls_set")}\n\n${controlsList}\n\n${t(
+              "set_limits_alert_controls_locked"
+            )}`
           );
         }
 
@@ -204,10 +204,7 @@ export default function SetLimits() {
         );
         setError(errorMessages);
       } else {
-        setError(
-          err.response?.data?.message ||
-            "Failed to set limits. Please try again."
-        );
+        setError(err.response?.data?.message || t("set_limits_error_failed"));
       }
       console.error("Set limits error:", err);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -226,7 +223,7 @@ export default function SetLimits() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="spinner w-12 h-12 border-4 mx-auto mb-4 text-primary-600"></div>
-          <p className="text-gray-600">Loading current limits...</p>
+          <p className="text-gray-600">{t("set_limits_loading")}</p>
         </div>
       </div>
     );
@@ -235,11 +232,11 @@ export default function SetLimits() {
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-        Set Your Responsible Gaming Limits
+        {t("set_limits_title")}
       </h1>
       <p className="text-sm text-gray-600 mb-6">
-        <strong>Important:</strong> Once set, limits cannot be changed by you.
-        Only support can remove them.
+        <strong>{t("set_limits_important")}</strong>{" "}
+        {t("set_limits_important_note")}
       </p>
 
       {success && (
@@ -256,13 +253,14 @@ export default function SetLimits() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <ControlCard
-          title="Stake Per Bet Limit"
-          description="Set a maximum amount you can bet on any single bet"
+          title={t("set_limits_stake_per_bet_title")}
+          description={t("set_limits_stake_per_bet_desc")}
           isLocked={isLocked("stake_per_bet_limit")}
           currentValue={currentLimits?.stake_per_bet_limit}
-          lockMessage="Stake per bet limit is already set. Contact support to remove it."
+          lockMessage={t("set_limits_stake_per_bet_locked")}
           currency={currency}
           amountUnit="currency"
+          t={t}
         >
           {!isLocked("stake_per_bet_limit") && (
             <>
@@ -277,22 +275,27 @@ export default function SetLimits() {
                   htmlFor="stake_enabled"
                   className="ml-3 text-base font-medium cursor-pointer"
                 >
-                  Enable stake per bet limit
+                  {t("set_limits_stake_per_bet_enable")}
                 </label>
               </div>
 
               {stakeEnabled && (
                 <div className="pl-8">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Maximum bet amount
+                    {t("set_limits_stake_per_bet_max")}
                   </label>
                   <input
                     type="number"
                     {...register("stake_per_bet_limit_amount", {
-                      required: stakeEnabled && "Amount is required",
-                      min: { value: 1, message: "Must be at least 1" },
+                      required:
+                        stakeEnabled &&
+                        t("set_limits_validation_amount_required"),
+                      min: {
+                        value: 1,
+                        message: t("set_limits_validation_min_1"),
+                      },
                     })}
-                    placeholder="e.g., 5000"
+                    placeholder={`${t("set_limits_example")} 5000`}
                     className={
                       errors.stake_per_bet_limit_amount
                         ? "input-error"
@@ -312,13 +315,14 @@ export default function SetLimits() {
         </ControlCard>
 
         <ControlCard
-          title="Deposit Limit"
-          description="Set a maximum amount you can deposit (operator decides enforcement window)"
+          title={t("set_limits_deposit_limit_title")}
+          description={t("set_limits_deposit_limit_desc")}
           isLocked={isLocked("deposit_limit")}
           currentValue={currentLimits?.deposit_limit}
-          lockMessage="Deposit limit is already set. Contact support to remove it."
+          lockMessage={t("set_limits_deposit_limit_locked")}
           currency={currency}
           amountUnit="currency"
+          t={t}
         >
           {!isLocked("deposit_limit") && (
             <>
@@ -333,22 +337,27 @@ export default function SetLimits() {
                   htmlFor="deposit_enabled"
                   className="ml-3 text-base font-medium cursor-pointer"
                 >
-                  Enable deposit limit
+                  {t("set_limits_deposit_limit_enable")}
                 </label>
               </div>
 
               {depositEnabled && (
                 <div className="pl-8">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Maximum deposit amount
+                    {t("set_limits_deposit_limit_max")}
                   </label>
                   <input
                     type="number"
                     {...register("deposit_limit_amount", {
-                      required: depositEnabled && "Amount is required",
-                      min: { value: 1, message: "Must be at least 1" },
+                      required:
+                        depositEnabled &&
+                        t("set_limits_validation_amount_required"),
+                      min: {
+                        value: 1,
+                        message: t("set_limits_validation_min_1"),
+                      },
                     })}
-                    placeholder="e.g., 20000"
+                    placeholder={`${t("set_limits_example")} 20000`}
                     className={
                       errors.deposit_limit_amount ? "input-error" : "input"
                     }
@@ -366,13 +375,14 @@ export default function SetLimits() {
         </ControlCard>
 
         <ControlCard
-          title="Bet Count Limit"
-          description="Limit the NUMBER of bets you can place (not the amount)"
+          title={t("set_limits_bet_count_title")}
+          description={t("set_limits_bet_count_desc")}
           isLocked={isLocked("bet_count_limit")}
           currentValue={currentLimits?.bet_count_limit}
-          lockMessage="Bet count limit is already set. Contact support to remove it."
+          lockMessage={t("set_limits_bet_count_locked")}
           currency={currency}
           amountUnit="bets"
+          t={t}
         >
           {!isLocked("bet_count_limit") && (
             <>
@@ -387,22 +397,27 @@ export default function SetLimits() {
                   htmlFor="bet_count_enabled"
                   className="ml-3 text-base font-medium cursor-pointer"
                 >
-                  Enable bet count limit
+                  {t("set_limits_bet_count_enable")}
                 </label>
               </div>
 
               {betCountEnabled && (
                 <div className="pl-8">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Maximum number of bets
+                    {t("set_limits_bet_count_max")}
                   </label>
                   <input
                     type="number"
                     {...register("bet_count_limit_amount", {
-                      required: betCountEnabled && "Amount is required",
-                      min: { value: 1, message: "Must be at least 1" },
+                      required:
+                        betCountEnabled &&
+                        t("set_limits_validation_amount_required"),
+                      min: {
+                        value: 1,
+                        message: t("set_limits_validation_min_1"),
+                      },
                     })}
-                    placeholder="e.g., 50"
+                    placeholder={`${t("set_limits_example")} 50`}
                     className={
                       errors.bet_count_limit_amount ? "input-error" : "input"
                     }
@@ -420,11 +435,12 @@ export default function SetLimits() {
         </ControlCard>
 
         <ControlCard
-          title="Session Breaks"
-          description="Take forced breaks during play to avoid gambling fatigue"
+          title={t("set_limits_session_break_title")}
+          description={t("set_limits_session_break_desc")}
           isLocked={isLocked("session_break")}
           currentValue={currentLimits?.session_break}
-          lockMessage="Session break is already set. Contact support to remove it."
+          lockMessage={t("set_limits_session_break_locked")}
+          t={t}
         >
           {!isLocked("session_break") && (
             <>
@@ -439,7 +455,7 @@ export default function SetLimits() {
                   htmlFor="session_break_enabled"
                   className="ml-3 text-base font-medium cursor-pointer"
                 >
-                  Enable session breaks
+                  {t("set_limits_session_break_enable")}
                 </label>
               </div>
 
@@ -447,14 +463,22 @@ export default function SetLimits() {
                 <div className="pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Break duration (minutes)
+                      {t("set_limits_session_break_duration")}
                     </label>
                     <input
                       type="number"
                       {...register("session_break_duration", {
-                        required: sessionBreakEnabled && "Required",
-                        min: { value: 1, message: "Min 1 minute" },
-                        max: { value: 60, message: "Max 60 minutes" },
+                        required:
+                          sessionBreakEnabled &&
+                          t("set_limits_validation_required"),
+                        min: {
+                          value: 1,
+                          message: t("set_limits_validation_min_1_minute"),
+                        },
+                        max: {
+                          value: 60,
+                          message: t("set_limits_validation_max_60_minutes"),
+                        },
                       })}
                       placeholder="5"
                       className={
@@ -471,14 +495,22 @@ export default function SetLimits() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Break every (minutes)
+                      {t("set_limits_session_break_frequency")}
                     </label>
                     <input
                       type="number"
                       {...register("session_break_frequency", {
-                        required: sessionBreakEnabled && "Required",
-                        min: { value: 1, message: "Min 1 minute" },
-                        max: { value: 480, message: "Max 480 minutes" },
+                        required:
+                          sessionBreakEnabled &&
+                          t("set_limits_validation_required"),
+                        min: {
+                          value: 1,
+                          message: t("set_limits_validation_min_1_minute"),
+                        },
+                        max: {
+                          value: 480,
+                          message: t("set_limits_validation_max_480_minutes"),
+                        },
                       })}
                       placeholder="60"
                       className={
@@ -494,7 +526,7 @@ export default function SetLimits() {
                   </div>
 
                   <p className="col-span-full text-sm text-gray-600">
-                    Example: 5 minutes break every 60 minutes of play
+                    {t("set_limits_session_break_example")}
                   </p>
                 </div>
               )}
@@ -503,11 +535,12 @@ export default function SetLimits() {
         </ControlCard>
 
         <ControlCard
-          title="Night Curfew"
-          description="Block access during specific hours every night (e.g., ensure proper sleep)"
+          title={t("set_limits_night_curfew_title")}
+          description={t("set_limits_night_curfew_desc")}
           isLocked={isLocked("night_curfew")}
           currentValue={currentLimits?.night_curfew}
-          lockMessage="Night curfew is already set. Contact support to remove it."
+          lockMessage={t("set_limits_night_curfew_locked")}
+          t={t}
         >
           {!isLocked("night_curfew") && (
             <>
@@ -522,7 +555,7 @@ export default function SetLimits() {
                   htmlFor="night_curfew_enabled"
                   className="ml-3 text-base font-medium cursor-pointer"
                 >
-                  Enable night curfew
+                  {t("set_limits_night_curfew_enable")}
                 </label>
               </div>
 
@@ -530,12 +563,14 @@ export default function SetLimits() {
                 <div className="pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start time
+                      {t("set_limits_night_curfew_start")}
                     </label>
                     <input
                       type="time"
                       {...register("night_curfew_daily_start_time", {
-                        required: nightCurfewEnabled && "Required",
+                        required:
+                          nightCurfewEnabled &&
+                          t("set_limits_validation_required"),
                       })}
                       className={
                         errors.night_curfew_daily_start_time
@@ -552,12 +587,14 @@ export default function SetLimits() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      End time
+                      {t("set_limits_night_curfew_end")}
                     </label>
                     <input
                       type="time"
                       {...register("night_curfew_daily_end_time", {
-                        required: nightCurfewEnabled && "Required",
+                        required:
+                          nightCurfewEnabled &&
+                          t("set_limits_validation_required"),
                       })}
                       className={
                         errors.night_curfew_daily_end_time
@@ -573,8 +610,7 @@ export default function SetLimits() {
                   </div>
 
                   <p className="col-span-full text-sm text-gray-600">
-                    Example: 02:00 to 06:00 = No play between 2 AM and 6 AM
-                    every night
+                    {t("set_limits_night_curfew_example")}
                   </p>
                 </div>
               )}
@@ -583,24 +619,27 @@ export default function SetLimits() {
         </ControlCard>
 
         <ControlCard
-          title="Time-Out (Cooling-Off)"
-          description="Take a short break from gambling. Your account will be locked temporarily."
+          title={t("set_limits_timeout_title")}
+          description={t("set_limits_timeout_desc")}
           isLocked={isLocked("time_out_limit")}
           currentValue={currentLimits?.time_out}
           lockMessage={
             currentLimits?.time_out?.active
-              ? `Time-out is active until ${new Date(
-                  currentLimits.time_out.end_at
-                ).toLocaleString()}. Wait for it to expire.`
-              : "Time-out has expired. You can set a new one."
+              ? t("set_limits_timeout_active_until", {
+                  date: new Date(
+                    currentLimits.time_out.end_at
+                  ).toLocaleString(),
+                })
+              : t("set_limits_timeout_expired")
           }
           bgColor="bg-yellow-50"
           borderColor="border-yellow-200"
+          t={t}
         >
           {timeOutDisabled ? (
             <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
               <p className="font-semibold text-gray-900 mb-1">
-                Self-exclusion in effect
+                {t("set_limits_timeout_self_exclusion_effect")}
               </p>
               <p>{timeOutDisabledMessage}</p>
             </div>
@@ -621,27 +660,37 @@ export default function SetLimits() {
                   htmlFor="timeout_enabled"
                   className="ml-3 text-base font-medium cursor-pointer"
                 >
-                  Activate time-out
+                  {t("set_limits_timeout_activate")}
                 </label>
               </div>
 
               {timeOutEnabled && !timeOutDisabled && (
                 <div className="pl-8">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration
+                    {t("set_limits_timeout_duration")}
                   </label>
                   <select
                     {...register("time_out_limit_option", {
-                      required: timeOutEnabled && "Duration is required",
+                      required:
+                        timeOutEnabled &&
+                        t("set_limits_validation_duration_required"),
                     })}
                     className={
                       errors.time_out_limit_option ? "input-error" : "input"
                     }
                   >
-                    <option value="">Select duration</option>
-                    <option value="24_hours">24 Hours</option>
-                    <option value="48_hours">48 Hours (2 days)</option>
-                    <option value="7_days">7 Days</option>
+                    <option value="">
+                      {t("set_limits_timeout_select_duration")}
+                    </option>
+                    <option value="24_hours">
+                      {t("set_limits_timeout_24_hours")}
+                    </option>
+                    <option value="48_hours">
+                      {t("set_limits_timeout_48_hours")}
+                    </option>
+                    <option value="7_days">
+                      {t("set_limits_timeout_7_days")}
+                    </option>
                   </select>
                   {errors.time_out_limit_option && (
                     <p className="text-red-500 text-sm mt-1">
@@ -649,8 +698,7 @@ export default function SetLimits() {
                     </p>
                   )}
                   <p className="text-sm text-red-700 mt-2 font-semibold">
-                    Your account will be locked for this duration. This cannot
-                    be undone.
+                    {t("set_limits_timeout_warning")}
                   </p>
                 </div>
               )}
@@ -659,21 +707,24 @@ export default function SetLimits() {
         </ControlCard>
 
         <ControlCard
-          title="Self-Exclusion"
-          description="Permanently or long-term block your account. This is for serious situations."
+          title={t("set_limits_self_exclusion_title")}
+          description={t("set_limits_self_exclusion_desc")}
           isLocked={isLocked("self_exclusion_limit")}
           currentValue={currentLimits?.self_exclusion}
           lockMessage={
             currentLimits?.self_exclusion?.option === "indefinitely"
-              ? "You are permanently self-excluded. Contact support to reactivate."
+              ? t("set_limits_self_exclusion_permanent")
               : currentLimits?.self_exclusion?.active
-              ? `Self-exclusion active until ${new Date(
-                  currentLimits.self_exclusion.end_at
-                ).toLocaleString()}. Contact support for early reactivation.`
-              : "Self-exclusion has expired. You can set a new one."
+              ? t("set_limits_self_exclusion_active_until", {
+                  date: new Date(
+                    currentLimits.self_exclusion.end_at
+                  ).toLocaleString(),
+                })
+              : t("set_limits_self_exclusion_expired")
           }
           bgColor="bg-red-50"
           borderColor="border-red-200"
+          t={t}
         >
           {!isLocked("self_exclusion_limit") && (
             <>
@@ -696,19 +747,20 @@ export default function SetLimits() {
                       htmlFor="self_exclusion_enabled"
                       className="ml-3 text-base font-medium cursor-pointer"
                     >
-                      Activate self-exclusion
+                      {t("set_limits_self_exclusion_activate")}
                     </label>
                   </div>
 
                   {selfExclusionEnabled && (
                     <div className="pl-8">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Duration
+                        {t("set_limits_self_exclusion_duration")}
                       </label>
                       <select
                         {...register("self_exclusion_limit_option", {
                           required:
-                            selfExclusionEnabled && "Duration is required",
+                            selfExclusionEnabled &&
+                            t("set_limits_validation_duration_required"),
                         })}
                         className={
                           errors.self_exclusion_limit_option
@@ -716,13 +768,23 @@ export default function SetLimits() {
                             : "input"
                         }
                       >
-                        <option value="">Select duration</option>
-                        <option value="1_month">1 Month</option>
-                        <option value="3_months">3 Months</option>
-                        <option value="6_months">6 Months</option>
-                        <option value="1_year">1 Year</option>
+                        <option value="">
+                          {t("set_limits_self_exclusion_select_duration")}
+                        </option>
+                        <option value="1_month">
+                          {t("set_limits_self_exclusion_1_month")}
+                        </option>
+                        <option value="3_months">
+                          {t("set_limits_self_exclusion_3_months")}
+                        </option>
+                        <option value="6_months">
+                          {t("set_limits_self_exclusion_6_months")}
+                        </option>
+                        <option value="1_year">
+                          {t("set_limits_self_exclusion_1_year")}
+                        </option>
                         <option value="indefinitely">
-                          Indefinitely (Permanent)
+                          {t("set_limits_self_exclusion_indefinitely")}
                         </option>
                       </select>
                       {errors.self_exclusion_limit_option && (
@@ -731,8 +793,7 @@ export default function SetLimits() {
                         </p>
                       )}
                       <p className="text-sm text-red-700 mt-2 font-semibold">
-                        WARNING: Self-exclusion cannot be reversed. You'll need
-                        to contact support.
+                        {t("set_limits_self_exclusion_warning")}
                       </p>
                     </div>
                   )}
@@ -743,13 +804,9 @@ export default function SetLimits() {
           {selfExclusionDisabled && !selfExclusionEnabled && (
             <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
               <p className="font-semibold text-gray-900 mb-1">
-                Time-out already active
+                {t("set_limits_self_exclusion_timeout_active")}
               </p>
-              <p>
-                A time-out is currently running. If you continue with
-                self-exclusion, the time-out will be removed and replaced by the
-                longer lock.
-              </p>
+              <p>{t("set_limits_self_exclusion_timeout_message")}</p>
             </div>
           )}
         </ControlCard>
@@ -763,10 +820,10 @@ export default function SetLimits() {
             {loading ? (
               <span className="flex items-center justify-center">
                 <span className="spinner w-5 h-5 border-2 mr-2"></span>
-                Saving...
+                {t("set_limits_saving")}
               </span>
             ) : (
-              "Save Controls"
+              t("set_limits_save_controls")
             )}
           </button>
         </div>
@@ -786,6 +843,7 @@ function ControlCard({
   borderColor = "border-gray-200",
   currency = "",
   amountUnit = "currency",
+  t,
 }) {
   return (
     <div className={`card border ${borderColor} ${bgColor}`}>
@@ -799,7 +857,7 @@ function ControlCard({
           <div className="flex items-start">
             <div className="flex-1">
               <p className="font-semibold text-gray-900 mb-2">
-                Limit Already Set
+                {t("set_limits_control_locked")}
               </p>
 
               {currentValue?.enabled && (
@@ -815,8 +873,9 @@ function ControlCard({
                     )}
                   {currentValue.duration !== undefined && (
                     <p className="text-lg font-semibold text-gray-700">
-                      {currentValue.duration}min every {currentValue.frequency}
-                      min
+                      {currentValue.duration} {t("set_limits_minutes_abbrev")}{" "}
+                      {t("set_limits_every")} {currentValue.frequency}{" "}
+                      {t("set_limits_minutes_abbrev")}
                     </p>
                   )}
                   {currentValue.daily_start_time && (
@@ -827,14 +886,14 @@ function ControlCard({
                   )}
                   {currentValue.option && (
                     <p className="text-lg font-semibold text-gray-700">
-                      {formatOption(currentValue.option)}
+                      {formatOption(currentValue.option, t)}
                     </p>
                   )}
                   {currentValue.end_at && (
                     <p className="text-sm text-gray-600 mt-1">
                       {currentValue.active
-                        ? "Active until"
-                        : "Was active until"}
+                        ? t("set_limits_control_active_until")
+                        : t("set_limits_control_was_active_until")}
                       : {new Date(currentValue.end_at).toLocaleString()}
                     </p>
                   )}
@@ -852,16 +911,16 @@ function ControlCard({
   );
 }
 
-function formatOption(option) {
+function formatOption(option, t) {
   const map = {
-    "24_hours": "24 Hours",
-    "48_hours": "48 Hours",
-    "7_days": "7 Days",
-    "1_month": "1 Month",
-    "3_months": "3 Months",
-    "6_months": "6 Months",
-    "1_year": "1 Year",
-    indefinitely: "Indefinitely (Permanent)",
+    "24_hours": t("set_limits_format_24_hours"),
+    "48_hours": t("set_limits_format_48_hours"),
+    "7_days": t("set_limits_format_7_days"),
+    "1_month": t("set_limits_format_1_month"),
+    "3_months": t("set_limits_format_3_months"),
+    "6_months": t("set_limits_format_6_months"),
+    "1_year": t("set_limits_format_1_year"),
+    indefinitely: t("set_limits_format_indefinitely"),
   };
   return map[option] || option;
 }
